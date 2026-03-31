@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facebook</title>
+<link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --fb-blue: #1877f2;
+    --fb-dark: #18191a;
+    --fb-panel: #242526;
+    --fb-border: #3a3b3c;
+    --fb-text: #e4e6eb;
+    --fb-muted: #b0b3b8;
+    --fb-hover: #3a3b3c;
+  }
+
+  body {
+    background: var(--fb-dark);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    color: var(--fb-text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── UPLOADER SCREEN ── */
+  #upload-screen {
+    width: 100%;
+    max-width: 480px;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .fb-logo {
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--fb-blue);
+    letter-spacing: -1px;
+  }
+
+  .upload-card {
+    background: var(--fb-panel);
+    border-radius: 16px;
+    padding: 32px 28px;
+    width: 100%;
+    border: 1px solid var(--fb-border);
+    box-shadow: 0 8px 40px rgba(0,0,0,.6);
+  }
+
+  .upload-card h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--fb-text);
+  }
+
+  .upload-card p {
+    font-size: 14px;
+    color: var(--fb-muted);
+    margin-bottom: 24px;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--fb-border);
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--fb-blue);
+    background: rgba(24,119,242,.07);
+  }
+
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .drop-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  .drop-zone span {
+    display: block;
+    font-size: 15px;
+    color: var(--fb-muted);
+  }
+
+  .drop-zone strong {
+    color: var(--fb-blue);
+  }
+
+  #video-preview-wrap {
+    display: none;
+    margin-top: 16px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background: #000;
+  }
+
+  #video-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    display: block;
+    border-radius: 10px;
+  }
+
+  .remove-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(0,0,0,.7);
+    border: none;
+    color: #fff;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .caption-input {
+    margin-top: 16px;
+    background: var(--fb-hover);
+    border: 1px solid var(--fb-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--fb-text);
+    font-size: 14px;
+    width: 100%;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+  }
+
+  .caption-input::placeholder { color: var(--fb-muted); }
+
+  .generate-btn {
+    margin-top: 20px;
+    width: 100%;
+    background: var(--fb-blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 13px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+  }
+
+  .generate-btn:hover { background: #166fe5; }
+  .generate-btn:active { transform: scale(.98); }
+  .generate-btn:disabled { background: #3a3b3c; color: #888; cursor: not-allowed; }
+
+  /* ── LINK RESULT ── */
+  #link-result {
+    display: none;
+    background: var(--fb-panel);
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+    border: 1px solid var(--fb-border);
+    box-shadow: 0 8px 40px rgba(0,0,0,.6);
+    text-align: center;
+  }
+
+  #link-result h3 { font-size: 18px; margin-bottom: 4px; }
+  #link-result p { font-size: 13px; color: var(--fb-muted); margin-bottom: 16px; }
+
+  .link-box {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: var(--fb-hover);
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--fb-border);
+  }
+
+  .link-box span {
+    flex: 1;
+    font-size: 13px;
+    color: var(--fb-blue);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+  }
+
+  .copy-btn {
+    background: var(--fb-blue);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s;
+  }
+  .copy-btn:hover { background: #166fe5; }
+  .copy-btn.copied { background: #2e7d32; }
+
+  .expiry-note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #e65100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  /* ── REEL VIEWER ── */
+  #reel-screen {
+    display: none;
+    width: 100%;
+    height: 100vh;
+    background: #000;
+    position: relative;
+    overflow: hidden;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  #reel-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Top bar */
+  .reel-topbar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 14px 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+    background: linear-gradient(to bottom, rgba(0,0,0,.65) 0%, transparent 100%);
+  }
+
+  .reel-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .reel-topbar-left svg { width: 24px; height: 24px; fill: #fff; }
+
+  .reel-topbar-right { display: flex; gap: 18px; }
+  .reel-topbar-right svg { width: 22px; height: 22px; fill: #fff; cursor: pointer; }
+
+  /* Bottom overlay */
+  .reel-bottom {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 0 16px 32px;
+    background: linear-gradient(to top, rgba(0,0,0,.8) 0%, transparent 100%);
+    z-index: 10;
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+  }
+
+  .reel-info { flex: 1; }
+
+  .reel-profile-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .reel-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: transform .15s;
+  }
+  .reel-avatar:hover { transform: scale(1.08); }
+
+  .reel-username {
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+    cursor: pointer;
+    text-shadow: 0 1px 4px rgba(0,0,0,.5);
+  }
+  .reel-username:hover { text-decoration: underline; }
+
+  .follow-btn {
+    background: transparent;
+    border: 1.5px solid #fff;
+    color: #fff;
+    border-radius: 6px;
+    padding: 4px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .follow-btn:hover { background: rgba(255,255,255,.15); }
+
+  .reel-caption {
+    font-size: 14px;
+    color: #fff;
+    line-height: 1.4;
+    text-shadow: 0 1px 4px rgba(0,0,0,.5);
+    margin-bottom: 10px;
+  }
+
+  .reel-audio {
+    font-size: 13px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: .85;
+  }
+
+  .reel-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding-bottom: 6px;
+  }
+
+  .reel-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    color: #fff;
+  }
+
+  .reel-action-btn svg {
+    width: 28px; height: 28px;
+    fill: #fff;
+    transition: transform .15s;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,.5));
+  }
+  .reel-action-btn:hover svg { transform: scale(1.15); }
+
+  .reel-action-btn span {
+    font-size: 12px;
+    font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  }
+
+  .action-liked svg { fill: #f02849 !important; }
+
+  /* Progress bar */
+  .reel-progress {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: rgba(255,255,255,.3);
+    z-index: 20;
+  }
+  .reel-progress-bar {
+    height: 100%;
+    background: #fff;
+    width: 0%;
+    transition: width .1s linear;
+  }
+
+  /* Music disc */
+  .music-disc {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #333, #111);
+    border: 2px solid rgba(255,255,255,.4);
+    display: flex; align-items: center; justify-content: center;
+    animation: spin 4s linear infinite;
+    animation-play-state: paused;
+  }
+  .music-disc.playing { animation-play-state: running; }
+  .music-disc-inner {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--fb-dark);
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── DOOM POPUP ── */
+  .popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.75);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  .popup-overlay.show { display: flex; }
+
+  .popup-box {
+    background: var(--fb-panel);
+    border-radius: 16px;
+    padding: 36px 32px;
+    max-width: 340px;
+    width: 90%;
+    text-align: center;
+    border: 1px solid var(--fb-border);
+    box-shadow: 0 20px 60px rgba(0,0,0,.8);
+    animation: popIn .3s cubic-bezier(.175,.885,.32,1.275);
+    position: relative;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(.7); opacity: 0; }
+    to   { transform: scale(1);  opacity: 1; }
+  }
+
+  .popup-emoji { font-size: 64px; margin-bottom: 12px; display: block; animation: bounce 1s infinite; }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+  }
+
+  .popup-box h2 {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #f44336;
+  }
+
+  .popup-box p {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ff9800;
+    margin-bottom: 20px;
+    line-height: 1.4;
+  }
+
+  .popup-close {
+    background: var(--fb-blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 32px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .popup-close:hover { background: #166fe5; }
+
+  /* ── EXPIRED SCREEN ── */
+  #expired-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
+    padding: 40px 24px;
+    max-width: 380px;
+  }
+
+  #expired-screen .big-icon { font-size: 72px; }
+  #expired-screen h2 { font-size: 22px; font-weight: 700; color: var(--fb-muted); }
+  #expired-screen p { font-size: 15px; color: var(--fb-muted); line-height: 1.5; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #333;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity .3s, transform .3s;
+    z-index: 99999;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Responsive */
+  @media (max-width: 440px) {
+    #reel-screen { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ UPLOAD SCREEN ═══════════ -->
+<div id="upload-screen">
+  <div class="fb-logo">facebook</div>
+
+  <div class="upload-card">
+    <h2>🎬 Create a Reel</h2>
+    <p>Upload a video and share a link — just like Facebook Reels.</p>
+
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="video-file" accept="video/*">
+      <div class="drop-icon">📹</div>
+      <span><strong>Click to upload</strong> or drag & drop</span>
+      <span style="font-size:12px;margin-top:6px;">MP4, MOV, WEBM — any size</span>
+    </div>
+
+    <div id="video-preview-wrap">
+      <video id="video-preview" muted playsinline></video>
+      <button class="remove-btn" id="remove-video">✕</button>
+    </div>
+
+    <textarea class="caption-input" id="caption-input" rows="2"
+      placeholder="Write a caption…"></textarea>
+
+    <button class="generate-btn" id="generate-btn" disabled>
+      Share Reel & Get Link
+    </button>
+  </div>
+
+  <div id="link-result">
+    <h3>🔗 Your Reel Link</h3>
+    <p>Send this to your friends. Link expires in 24 hours.</p>
+    <div class="link-box">
+      <span id="generated-link"></span>
+      <button class="copy-btn" id="copy-btn">Copy</button>
+    </div>
+    <div class="expiry-note">⏰ Expires in <span id="expiry-countdown">24:00:00</span></div>
+  </div>
+</div>
+
+<!-- ═══════════ REEL VIEWER ═══════════ -->
+<div id="reel-screen">
+  <!-- Top bar -->
+  <div class="reel-topbar">
+    <div class="reel-topbar-left">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+      Reels
+    </div>
+    <div class="reel-topbar-right">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+    </div>
+  </div>
+
+  <!-- Video -->
+  <video id="reel-video" loop autoplay playsinline></video>
+
+  <!-- Bottom UI -->
+  <div class="reel-bottom">
+    <div class="reel-info">
+      <div class="reel-profile-row">
+        <div class="reel-avatar" id="reel-avatar" onclick="showDoomPopup()">😈</div>
+        <span class="reel-username" id="reel-username" onclick="showDoomPopup()">Alex Johnson</span>
+        <button class="follow-btn">Follow</button>
+      </div>
+      <div class="reel-caption" id="reel-caption">Check out this reel! 🔥</div>
+      <div class="reel-audio">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        Original audio · Alex Johnson
+      </div>
+    </div>
+    <div class="reel-actions">
+      <div class="reel-action-btn" id="like-btn" onclick="toggleLike()">
+        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <span id="like-count">47.2K</span>
+      </div>
+      <div class="reel-action-btn" onclick="showDoomPopup()">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        <span>1.8K</span>
+      </div>
+      <div class="reel-action-btn" onclick="shareReel()">
+        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+        <span>Share</span>
+      </div>
+      <div class="reel-action-btn" onclick="showDoomPopup()">
+        <div class="music-disc" id="music-disc"><div class="music-disc-inner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="reel-progress"><div class="reel-progress-bar" id="progress-bar"></div></div>
+</div>
+
+<!-- ═══════════ EXPIRED SCREEN ═══════════ -->
+<div id="expired-screen">
+  <div class="big-icon">⏰</div>
+  <h2>This link has expired</h2>
+  <p>Reels links are only valid for 24 hours.<br>Ask the sender to share a new one.</p>
+</div>
+
+<!-- ═══════════ DOOM POPUP ═══════════ -->
+<div class="popup-overlay" id="doom-popup">
+  <div class="popup-box">
+    <span class="popup-emoji">😈</span>
+    <h2>YOU ARE DOOMED</h2>
+    <p>Happy April 1st! 🎉🃏<br>Gotcha! 😂</p>
+    <button class="popup-close" onclick="closeDoomPopup()">Haha, nice one!</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+let videoFile = null;   // raw File object — no base64 bloat
+let likeCount = 47200;
+let liked = false;
+let expiryTimer = null;
+
+const DB_NAME    = 'fb_reel_prank';
+const DB_VERSION = 1;
+const STORE      = 'reels';
+
+// ══════════════════════════════════════
+//  INDEXEDDB  (supports 100 MB+)
+// ══════════════════════════════════════
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, { keyPath: 'id' });
+    req.onsuccess = e => res(e.target.result);
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+async function dbPut(record) {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put(record);
+    tx.oncomplete = () => res();
+    tx.onerror    = e => rej(e.target.error);
+  });
+}
+
+async function dbGet(id) {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const req = db.transaction(STORE, 'readonly').objectStore(STORE).get(id);
+    req.onsuccess = e => res(e.target.result || null);
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+async function dbDelete(id) {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).delete(id);
+    tx.oncomplete = () => res();
+    tx.onerror    = e => rej(e.target.error);
+  });
+}
+
+// ══════════════════════════════════════
+//  ROUTING — check URL on load
+// ══════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(location.search);
+  const id = params.get('reel');
+  if (id) {
+    loadReel(id);
+  } else {
+    document.getElementById('upload-screen').style.display = 'flex';
+  }
+});
+
+// ══════════════════════════════════════
+//  UPLOAD & GENERATE
+// ══════════════════════════════════════
+const fileInput   = document.getElementById('video-file');
+const dropZone    = document.getElementById('drop-zone');
+const preview     = document.getElementById('video-preview');
+const previewWrap = document.getElementById('video-preview-wrap');
+const genBtn      = document.getElementById('generate-btn');
+
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  handleFile(e.dataTransfer.files[0]);
+});
+
+document.getElementById('remove-video').addEventListener('click', () => {
+  videoFile = null;
+  preview.src = '';
+  URL.revokeObjectURL(preview.src);
+  previewWrap.style.display = 'none';
+  genBtn.disabled = true;
+  fileInput.value = '';
+});
+
+function handleFile(file) {
+  if (!file || !file.type.startsWith('video/')) { showToast('Please pick a video file.'); return; }
+  videoFile = file;
+  preview.src = URL.createObjectURL(file);  // object URL — no size limit
+  previewWrap.style.display = 'block';
+  genBtn.disabled = false;
+  const mb = (file.size / 1024 / 1024).toFixed(1);
+  showToast(`✅ Video loaded (${mb} MB)`);
+}
+
+genBtn.addEventListener('click', async () => {
+  if (!videoFile) return;
+  genBtn.disabled = true;
+  genBtn.textContent = 'Saving…';
+
+  const caption = document.getElementById('caption-input').value || 'Check out this reel! 🔥';
+  const id      = makeID();
+
+  try {
+    // Store the raw File/Blob directly — IndexedDB handles binary efficiently
+    await dbPut({ id, blob: videoFile, caption, created: Date.now() });
+  } catch(e) {
+    showToast('⚠️ Could not save video: ' + e.message);
+    genBtn.disabled = false;
+    genBtn.textContent = 'Share Reel & Get Link';
+    return;
+  }
+
+  const link = `${location.origin}${location.pathname}?reel=${id}`;
+  document.getElementById('generated-link').textContent = link;
+  document.getElementById('link-result').style.display = 'block';
+  startExpiryCountdown(Date.now() + 86400000);
+  document.getElementById('link-result').scrollIntoView({ behavior: 'smooth' });
+
+  genBtn.disabled = false;
+  genBtn.textContent = 'Share Reel & Get Link';
+});
+
+document.getElementById('copy-btn').addEventListener('click', () => {
+  const link = document.getElementById('generated-link').textContent;
+  navigator.clipboard.writeText(link).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+});
+
+// ══════════════════════════════════════
+//  LOAD REEL FROM LINK
+// ══════════════════════════════════════
+async function loadReel(id) {
+  let data;
+  try { data = await dbGet(id); } catch { showExpired(); return; }
+
+  if (!data) { showExpired(); return; }
+
+  // Check 24h expiry
+  if (Date.now() - data.created > 86400000) {
+    await dbDelete(id);
+    showExpired();
+    return;
+  }
+
+  // Show reel
+  document.getElementById('upload-screen').style.display = 'none';
+  document.getElementById('reel-screen').style.display = 'block';
+
+  const video = document.getElementById('reel-video');
+  video.src = URL.createObjectURL(data.blob);  // blob → object URL, no size limit
+  video.play().catch(() => {});
+  document.getElementById('reel-caption').textContent = data.caption;
+
+  // Progress bar
+  video.addEventListener('timeupdate', () => {
+    if (video.duration)
+      document.getElementById('progress-bar').style.width =
+        (video.currentTime / video.duration * 100) + '%';
+  });
+
+  document.getElementById('music-disc').classList.add('playing');
+
+  video.addEventListener('click', () => {
+    if (video.paused) { video.play();  document.getElementById('music-disc').classList.add('playing'); }
+    else              { video.pause(); document.getElementById('music-disc').classList.remove('playing'); }
+  });
+}
+
+// ══════════════════════════════════════
+//  DOOM POPUP
+// ══════════════════════════════════════
+function showDoomPopup() {
+  document.getElementById('doom-popup').classList.add('show');
+}
+function closeDoomPopup() {
+  document.getElementById('doom-popup').classList.remove('show');
+}
+
+// ══════════════════════════════════════
+//  LIKE
+// ══════════════════════════════════════
+function toggleLike() {
+  liked = !liked;
+  likeCount += liked ? 1 : -1;
+  const btn = document.getElementById('like-btn');
+  btn.classList.toggle('action-liked', liked);
+  document.getElementById('like-count').textContent = formatCount(likeCount);
+}
+
+function formatCount(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n;
+}
+
+// ══════════════════════════════════════
+//  SHARE
+// ══════════════════════════════════════
+function shareReel() {
+  if (navigator.share) {
+    navigator.share({ title: 'Facebook Reel', url: location.href }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(location.href).then(() => showToast('🔗 Link copied!'));
+  }
+}
+
+// ══════════════════════════════════════
+//  EXPIRED
+// ══════════════════════════════════════
+function showExpired() {
+  document.getElementById('upload-screen').style.display = 'none';
+  document.getElementById('expired-screen').style.display = 'flex';
+}
+
+// ══════════════════════════════════════
+//  COUNTDOWN
+// ══════════════════════════════════════
+function startExpiryCountdown(expireAt) {
+  if (expiryTimer) clearInterval(expiryTimer);
+  function tick() {
+    const left = expireAt - Date.now();
+    if (left <= 0) { document.getElementById('expiry-countdown').textContent = 'Expired'; clearInterval(expiryTimer); return; }
+    const h = Math.floor(left / 3600000);
+    const m = Math.floor((left % 3600000) / 60000);
+    const s = Math.floor((left % 60000) / 1000);
+    document.getElementById('expiry-countdown').textContent =
+      String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+  tick();
+  expiryTimer = setInterval(tick, 1000);
+}
+
+// ══════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════
+function makeID() {
+  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
